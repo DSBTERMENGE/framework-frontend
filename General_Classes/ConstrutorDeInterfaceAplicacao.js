@@ -17,8 +17,27 @@ export class ConstrutorDeInterfaceAplicacao {
         // Configuração dos menus (estrutura baseada em ui_menu.js)
         this.menus = config.menus || [];
         
+        // Referências aos contêineres principais da interface
+        this.divApp = null;
+        this.divCabecalho = null;
+        this.divCorpo = null;
+        this.divRodape = null;
+        
         // Estado interno de controle
         this.menusRenderizados = new Map(); // Controla menus criados
+        
+        // Inicializar referências dos contêineres
+        this.inicializarConteineres();
+    }
+
+    /**
+     * Inicializa as referências dos contêineres principais
+     */
+    inicializarConteineres() {
+        this.divApp = document.getElementById('app');
+        this.divCabecalho = document.getElementById('divCabecalho');
+        this.divCorpo = document.getElementById('divCorpo');
+        this.divRodape = document.getElementById('divRodape');
     }
 
     /**
@@ -26,14 +45,50 @@ export class ConstrutorDeInterfaceAplicacao {
      * Baseado na sequência: criarTitulos() -> constroiMenus() do ui_menu.js
      */
     construirInterface() {
-        this.criarTitulos();
+        this.criarTitulosIntegrado();
         this.construirMenus();
         console.log(`Interface construída: ${this.titulo}`);
     }
 
     /**
+     * Cria o título da aplicação (funcionalidade integrada)
+     * Substitui a necessidade da classe CriarTitulos
+     */
+    criarTitulosIntegrado() {
+        // Busca o divTitulo
+        const divTitulo = document.getElementById('divTitulo');
+        if (!divTitulo) {
+            console.error('divTitulo não existe.');
+            return;
+        }
+        
+        // Preenche o ícone
+        const divIcone = divTitulo.querySelector('#divIcone');
+        if (divIcone) {
+            if (this.icone) {
+                divIcone.innerHTML = `<img src="${this.icone}" alt="Ícone" style="width:100%;height:100%;object-fit:contain;">`;
+            } else {
+                divIcone.innerHTML = `<span style="font-size:2rem;font-weight:bold;display:flex;align-items:center;justify-content:center;width:100%;height:100%;">X</span>`;
+            }
+        }
+        
+        // Preenche o nome da aplicação
+        const divNomeApp = divTitulo.querySelector('#divNomeApp');
+        if (divNomeApp) {
+            divNomeApp.textContent = this.titulo;
+        }
+        
+        // Preenche a descrição
+        const divDescricao = divTitulo.querySelector('#divDescricao');
+        if (divDescricao) {
+            divDescricao.textContent = this.descricao;
+        }
+    }
+
+    /**
      * Cria o título da aplicação
      * Replica a função criarTitulos() do ui_menu.js de forma parametrizada
+     * MANTIDO TEMPORARIAMENTE - será removido quando a integração estiver completa
      */
     criarTitulos() {
         const titulo = new CriarTitulos(
