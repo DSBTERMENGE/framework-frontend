@@ -30,6 +30,7 @@ export class FormComum extends FormularioBase {
     /**
      * Cria um formulário comum.
      * @param {string} titulo - Título do formulário (ex: "Cadastro de Clientes")
+     * @param {string} descricao - Descrição do propósito do formulário (ex: "1o nível de classificação")
      * @param {Array<string>} tipo - Lista de tipos de campo ('input', 'combo', 'radio', 'checkbox', 'textarea')
      * @param {Array<string>} label - Lista de rótulos dos campos
      * @param {Array<string>} nomeCampo - Lista de nomes/ids dos campos
@@ -42,13 +43,14 @@ export class FormComum extends FormularioBase {
      * @param {Array<string>} opcoes.grupoBotoes - Array ['S'|'N', 'S'|'N', 'S'|'N'] para grupos [Encerrar, Navegação, CRUD]. Padrão: ['S','N','S']
      * @param {Object} opcoes.selects - Configuração das selects: {labels: [], campos: [], larguras: [], arranjo: 'linha'|'coluna'}
      */
-    constructor(titulo = '', tipo = [], label = [], nomeCampo = [], format = [], pos = [], alinhamento = [], largCampos = [], posicaoCanvas = {x: 3, y: 5}, opcoes = {}) {
+    constructor(titulo = '', descricao = '', tipo = [], label = [], nomeCampo = [], format = [], pos = [], alinhamento = [], largCampos = [], posicaoCanvas = {x: 3, y: 5}, opcoes = {}) {
         super(titulo, posicaoCanvas, 'comum');  // ✅ Correto: 'comum' em vez de 'formulario'
         
         // Validação dos parâmetros
         FormComum.validacao(tipo, label, nomeCampo, format, pos, alinhamento, largCampos);
         
         // Propriedades específicas do formulário
+        this.descricao = descricao;
         this.tipo = tipo;
         this.label = label;
         this.nomeCampo = nomeCampo;
@@ -220,7 +222,6 @@ export class FormComum extends FormularioBase {
                     break;
                 case 'combo':
                     campo = document.createElement('select');
-                    campo.type = 'text';
                     if (this.largCampos && this.largCampos[i] !== undefined) campo.style.width = this.largCampos[i] + 'rem';
                     break;
                 case 'radio':
@@ -233,6 +234,7 @@ export class FormComum extends FormularioBase {
                     break;
                 case 'textarea':
                     campo = document.createElement('textarea');
+                    if (this.largCampos && this.largCampos[i] !== undefined) campo.style.width = this.largCampos[i] + 'rem';
                     break;
                 default:
                     campo = document.createElement('input');
@@ -305,8 +307,15 @@ export class FormComum extends FormularioBase {
         // Eventos para grupo Encerrar
         if (this.grupoBotoes[0] === 'S') {
             const btnEncerrar = this.criarBotoes.obterElementoBotao('btn_encerrar');
+            console.log('🔧 DEBUG FRAMEWORK: Botão encerrar encontrado:', btnEncerrar); // DEBUG
             if (btnEncerrar) {
-                btnEncerrar.addEventListener('click', () => this._onEncerrar());
+                btnEncerrar.addEventListener('click', () => {
+                    console.log('🔧 DEBUG FRAMEWORK: Click no botão encerrar capturado!'); // DEBUG
+                    this._onEncerrar();
+                });
+                console.log('🔧 DEBUG FRAMEWORK: Event listener adicionado ao botão encerrar'); // DEBUG
+            } else {
+                console.warn('🔧 DEBUG FRAMEWORK: Botão encerrar NÃO encontrado!'); // DEBUG
             }
         }
         
@@ -339,6 +348,7 @@ export class FormComum extends FormularioBase {
 
     // Métodos de eventos dos botões - Disparam eventos customizados (padrão das selects)
     _onEncerrar() {
+        console.log('🔧 DEBUG FRAMEWORK: _onEncerrar() chamado!'); // DEBUG
         console.log('Encerrando formulário...');
         
         // Dispara evento customizado
@@ -488,6 +498,25 @@ export class FormComum extends FormularioBase {
         return true;
     }
 
+    /**
+     * Define altura específica para textareas do formulário
+     * @param {string|Object} altura - Altura em rem (ex: '6rem') ou objeto com campos específicos
+     */
+    definirAlturaTextarea(altura) {
+        this.fields.forEach(field => {
+            const textarea = field.querySelector('textarea');
+            if (textarea) {
+                if (typeof altura === 'string') {
+                    // Altura igual para todos os textareas
+                    textarea.style.height = altura;
+                } else if (typeof altura === 'object' && altura[textarea.name]) {
+                    // Altura específica por nome do campo
+                    textarea.style.height = altura[textarea.name];
+                }
+            }
+        });
+    }
+
     obterDadosFormulario() {
         const dados = {};
         
@@ -535,8 +564,8 @@ export class FormComum extends FormularioBase {
         this.posicionarNoCanvas(this.posicaoCanvas.x, this.posicaoCanvas.y);
         this.exibir();
         
-        // Aplica título
-        this.configurarHeader(this.titulo);
+        // Aplica título e descrição
+        this.configurarHeader(this.titulo, this.descricao);
         
         // Cria e posiciona os campos
         this._criarDivsCampos();
@@ -660,6 +689,43 @@ export class FormComum extends FormularioBase {
      */
     temSelects() {
         return this.objSelect !== null;
+    }
+
+    // ============= MÉTODOS DE EVENTOS INTERNOS =============
+    
+    _onEncerrar() {
+        this._dispararEvento('encerrar');
+    }
+    
+    _onPrimeiro() {
+        this._dispararEvento('primeiro');
+    }
+    
+    _onAnterior() {
+        this._dispararEvento('anterior');
+    }
+    
+    _onProximo() {
+        this._dispararEvento('proximo');
+    }
+    
+    _onUltimo() {
+        this._dispararEvento('ultimo');
+    }
+    
+    _dispararEvento(acao) {
+        const evento = new CustomEvent('formulario-acao', {
+            detail: {
+                acao: acao,
+                instancia: this,
+                dados: this.obterDados()
+            }
+        });
+        
+        const divRodape = document.getElementById('divRodape');
+        if (divRodape) {
+            divRodape.dispatchEvent(evento);
+        }
     }
 }
 

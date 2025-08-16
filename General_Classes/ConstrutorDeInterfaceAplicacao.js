@@ -1,6 +1,5 @@
 // Importando as classes necessárias do framework
 import { BarraDeBotoes } from './ConstrutorDeBarrasDeBotoes.js';
-import { CriarTitulos } from './ConstrutorDeTitulos.js';
 
 /**
  * Construtor de Interface de Aplicação
@@ -83,20 +82,6 @@ export class ConstrutorDeInterfaceAplicacao {
         if (divDescricao) {
             divDescricao.textContent = this.descricao;
         }
-    }
-
-    /**
-     * Cria o título da aplicação
-     * Replica a função criarTitulos() do ui_menu.js de forma parametrizada
-     * MANTIDO TEMPORARIAMENTE - será removido quando a integração estiver completa
-     */
-    criarTitulos() {
-        const titulo = new CriarTitulos(
-            this.titulo,
-            this.descricao,
-            this.icone
-        );
-        titulo.renderizar();
     }
 
     /**

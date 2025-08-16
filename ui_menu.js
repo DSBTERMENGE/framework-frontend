@@ -2,7 +2,6 @@
 
 // Importando as classes necessárias
 import { BarraDeBotoes } from './General_Classes/ConstrutorDeBarrasDeBotoes.js';
-import { CriarTitulos } from './General_Classes/ConstrutorDeTitulos.js';
 
 // Importando os handlers de eventos: (Os handlers de eventos precisam estar
 // no mesmo arquivo que o evento foi registrado, por isto se está importando)
@@ -22,14 +21,9 @@ CONSTRUÇÃO DE BLOCOS DE ELEMENTOS PARA O SISTEMA
 
 //Criando o título do projeto
 export function criarTitulos(){
-    const titulo = new CriarTitulos(
-        "FinCtlByDSB", // tituloDoProjeto
-        "Controle de despesas pessoais", // descProjeto
-        "Assets/icon_app.svg" // end_icone
-    );
-    titulo.renderizar();
-
-    // Margens agora são controladas via CSS, não é necessário aplicar via JS.
+    // NOTA: Esta função está mantida por compatibilidade
+    // Em novos projetos, use ConstrutorDeInterfaceAplicacao.criarTitulosIntegrado()
+    console.log('⚠️ Função criarTitulos() do ui_menu.js está obsoleta. Use ConstrutorDeInterfaceAplicacao.');
 }
 
 //Criando o menu principal e sub menus

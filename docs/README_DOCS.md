@@ -47,17 +47,23 @@
 - Padrões de desenvolvimento
 - Convenções de código
 
-### **5. TESTES_ESTRATEGIA.md**
+### **6. REGRAS_CONSTRUCAO_CODIGO.md**
+- **Conteúdo**: Padrões obrigatórios para organização de código
+- **Inclui**: Sistema de comentários padronizados, agrupamento por funcionalidade
+- **Status**: ✅ Criado
+- **Uso**: Guia essencial para todos os desenvolvedores
+
+### **7. TESTES_ESTRATEGIA.md**
 - Estratégia de testes automatizados
 - Estrutura de testes unitários, integração e E2E
 - Ferramentas e configurações
 
-### **6. DEPLOY_DISTRIBUICAO.md**
+### **8. DEPLOY_DISTRIBUICAO.md**
 - Estratégias de empacotamento
 - Modelos de distribuição (SaaS vs On-Premise)
 - Processo de build e deploy
 
-### **7. MODELO_NEGOCIOS.md**
+### **9. MODELO_NEGOCIOS.md**
 - Estratégia comercial
 - Público-alvo
 - Precificação e modelo de receita
