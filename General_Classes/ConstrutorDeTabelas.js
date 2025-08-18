@@ -2,13 +2,13 @@
  * Nova classe CriarTabelas que herda de FormularioBase
  * Reaproveita TODAS as funcionalidades do sistema antigo ConstrutorDeTabelas.js
  * + Sistema avançado de cálculos estatísticos
- * + Integração com CriarSelects e CriarBotoes
+ * + Integração com CriarSelects e CriarBtnRodape
  * + Formatação e alinhamento avançados
  */
 
 import { FormularioBase } from './ConstrutorDeFormularioBase.js';
 import { CriarSelects } from './ConstrutorDeSelects.js';
-import { CriarBotoes } from './ConstrutorDeBotoes.js';
+import { CriarBtnRodape } from './ConstrutorBtnRodapeForms.js';
 
 export class CriarTabelas extends FormularioBase {
     /**
@@ -50,7 +50,7 @@ export class CriarTabelas extends FormularioBase {
         
         // Configurar botões se fornecidos
         if (opcoes.grupoBotoes && Array.isArray(opcoes.grupoBotoes)) {
-            this.objBotoes = new CriarBotoes(opcoes.grupoBotoes);
+            this.objBotoes = new CriarBtnRodape(opcoes.grupoBotoes);
         }
         
         // Validação (baseada no sistema antigo)

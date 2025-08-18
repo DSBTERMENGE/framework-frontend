@@ -10,7 +10,7 @@
  */
 
 import { FormularioBase } from './ConstrutorDeFormularioBase.js';
-import { CriarBotoes } from './ConstrutorDeBotoes.js';
+import { CriarBtnRodape } from './ConstrutorBtnRodapeForms.js';
 import { CriarSelects } from './ConstrutorDeSelects.js';
 
 /**
@@ -253,97 +253,99 @@ export class FormComum extends FormularioBase {
     }
 
     /**
-     * Cria e configura os botões no rodapé global (seguindo padrão das tabelas)
+     * Cria e configura os botões no footer do formulário comum
      */
     _criarBotoesRodape() {
-        const divRodape = document.getElementById('divRodape');
-        if (!divRodape || !this.criarBotoes) return;
+        console.log('🔧 DEBUG: _criarBotoesRodape() chamado');
+        console.log('🔧 DEBUG: this.criarBotoes existe?', !!this.criarBotoes);
         
-        console.log('✅ Configurando botões no rodapé global...');
-        
-        // Limpa botões anteriores do rodapé
-        const divBotoes = divRodape.querySelector('#divBotoes');
-        if (divBotoes) {
-            divBotoes.innerHTML = '';
-            
-            // Adiciona botões no rodapé global (mesmo padrão das tabelas)
-            const botoesHTML = this.criarBotoes.gerarHTML();
-            divBotoes.innerHTML = botoesHTML;
-            
-            console.log('✅ Botões inseridos no rodapé global');
-        } else {
-            console.log('❌ divBotoes não encontrado no rodapé');
+        if (!this.criarBotoes) {
+            console.log('❌ criarBotoes não existe, saindo...');
+            return;
         }
-    }
-
-    /**
-     * Remove botões do footer local e o oculta para não ocupar espaço
-     */
-    _ocultarFooterLocal() {
-        if (!this.form) return;
         
-        const footer = this.form.querySelector('footer');
-        if (footer) {
-            // Remove todos os botões do footer local
-            footer.innerHTML = '';
-            
-            // Oculta o footer para não ocupar espaço no canvas
-            footer.style.display = 'none';
-            footer.style.height = '0px';
-            footer.style.padding = '0px';
-            footer.style.margin = '0px';
-            footer.style.minHeight = '0px';
-            
-            console.log('✅ Footer local ocultado - espaço liberado no canvas');
-        }
-    }
-
-    /**
-     * Configura os eventos dos botões do formulário
-     */
-    _configurarEventosBotoes() {
-        if (!this.criarBotoes) return;
+        console.log('✅ Inserindo botões no footer do formulário comum...');
         
-        // Eventos para grupo Encerrar
-        if (this.grupoBotoes[0] === 'S') {
-            const btnEncerrar = this.criarBotoes.obterElementoBotao('btn_encerrar');
-            console.log('🔧 DEBUG FRAMEWORK: Botão encerrar encontrado:', btnEncerrar); // DEBUG
-            if (btnEncerrar) {
-                btnEncerrar.addEventListener('click', () => {
-                    console.log('🔧 DEBUG FRAMEWORK: Click no botão encerrar capturado!'); // DEBUG
-                    this._onEncerrar();
-                });
-                console.log('🔧 DEBUG FRAMEWORK: Event listener adicionado ao botão encerrar'); // DEBUG
-            } else {
-                console.warn('🔧 DEBUG FRAMEWORK: Botão encerrar NÃO encontrado!'); // DEBUG
+        // Busca o container no footer do formulário comum
+        const divBotoesFormComum = document.querySelector('#divBotoesFormComum');
+        
+        console.log('🔧 DEBUG: divBotoesFormComum encontrado?', !!divBotoesFormComum);
+        
+        if (divBotoesFormComum) {
+            try {
+                // Insere os botões no container do formulário
+                this.criarBotoes.inserirEm(divBotoesFormComum);
+                console.log('✅ Botões inseridos no divBotoesFormComum via inserirEm()');
+            } catch (error) {
+                console.error('❌ Erro ao inserir botões:', error);
             }
+        } else {
+            console.log('❌ divBotoesFormComum não encontrado no formulário');
         }
+    }
+
+    // MÉTODO REMOVIDO: _ocultarFooterLocal() 
+    // Era usado para ocultar footer vazio, mas agora sempre temos pelo menos botão Encerrar
+
+    /**
+     * ✅ NOVA ABORDAGEM - ESCUTA EVENTOS DO CriarBtnRodape
+     * 
+     * SOLUÇÃO PARA CONFLITO DE EVENT LISTENERS:
+     * - Escuta o evento 'botao-clicado' disparado pelo CriarBtnRodape
+     * - Converte para 'formulario-acao' que é esperado pelos form_grupos.js/form_subgrupos.js
+     * 
+     * FLUXO:
+     * Botão → CriarBtnRodape → 'botao-clicado' → [ESTE MÉTODO] → 'formulario-acao' → form_grupos.js
+     * 
+     * @private
+     */
+    _configurarEscutaEventosRodape() {
+        console.log('🔧 DEBUG FRAMEWORK: Configurando escuta de eventos do CriarBtnRodape');
         
-        // Eventos para grupo Navegação 
-        if (this.grupoBotoes[1] === 'S') {
-            const btnPrimeiro = this.criarBotoes.obterElementoBotao('btn_primeiro');
-            const btnRecua = this.criarBotoes.obterElementoBotao('btn_recua');
-            const btnAvanca = this.criarBotoes.obterElementoBotao('btn_avanca');
-            const btnUltimo = this.criarBotoes.obterElementoBotao('btn_ultimo');
+        // Aguarda um pouco para garantir que o DOM está pronto
+        setTimeout(() => {
+            // Busca o container dos botões (onde CriarBtnRodape dispara 'botao-clicado')
+            const containerBotoes = document.querySelector('.botoes-container');
+            console.log('🔧 DEBUG FRAMEWORK: Container de botões encontrado:', containerBotoes);
             
-            if (btnPrimeiro) btnPrimeiro.addEventListener('click', () => this._onPrimeiro());
-            if (btnRecua) btnRecua.addEventListener('click', () => this._onAnterior());
-            if (btnAvanca) btnAvanca.addEventListener('click', () => this._onProximo());
-            if (btnUltimo) btnUltimo.addEventListener('click', () => this._onUltimo());
-        }
-        
-        // Eventos para grupo CRUD
-        if (this.grupoBotoes[2] === 'S') {
-            const btnIncluir = this.criarBotoes.obterElementoBotao('btn_incluir');
-            const btnEditar = this.criarBotoes.obterElementoBotao('btn_editar');
-            const btnDeletar = this.criarBotoes.obterElementoBotao('btn_deletar');
-            const btnSalvar = this.criarBotoes.obterElementoBotao('btn_salvar');
+            if (containerBotoes) {
+                containerBotoes.addEventListener('botao-clicado', (event) => {
+                    console.log('🔧 DEBUG FRAMEWORK: Evento botao-clicado capturado!', event.detail);
+                
+                const { acao, botaoId } = event.detail;
+                
+                // Mapeia as ações do CriarBtnRodape para as ações do formulário
+                const mapeamentoAcoes = {
+                    'encerrar': 'encerrar',
+                    'primeiro': 'primeiro', 
+                    'recua': 'anterior',
+                    'avanca': 'proximo',
+                    'ultimo': 'ultimo',
+                    'incluir': 'novo',
+                    'editar': 'editar',
+                    'deletar': 'excluir',
+                    'salvar': 'salvar'
+                };
+                
+                const acaoFormulario = mapeamentoAcoes[acao];
+                
+                if (acaoFormulario) {
+                    console.log(`🔧 DEBUG FRAMEWORK: Convertendo '${acao}' → '${acaoFormulario}'`);
+                    
+                    // Dispara o evento que os formulários específicos estão esperando
+                    this._dispararEventoCustomizado(acaoFormulario, {
+                        dados: this.obterDadosFormulario()
+                    });
+                } else {
+                    console.warn(`🔧 DEBUG FRAMEWORK: Ação '${acao}' não mapeada`);
+                }
+            });
             
-            if (btnIncluir) btnIncluir.addEventListener('click', () => this._onNovo());
-            if (btnEditar) btnEditar.addEventListener('click', () => this._onEditar());
-            if (btnDeletar) btnDeletar.addEventListener('click', () => this._onExcluir());
-            if (btnSalvar) btnSalvar.addEventListener('click', () => this._onSalvar());
+            console.log('✅ DEBUG FRAMEWORK: Listener configurado no container de botões');
+        } else {
+            console.warn('⚠️ DEBUG FRAMEWORK: Container de botões (.botoes-container) não encontrado');
         }
+        }, 500); // Timeout para aguardar DOM
     }
 
     // Métodos de eventos dos botões - Disparam eventos customizados (padrão das selects)
@@ -356,15 +358,14 @@ export class FormComum extends FormularioBase {
             dados: this.obterDadosFormulario()
         });
         
-        // Limpa os botões do rodapé global
-        const divRodape = document.getElementById('divRodape');
-        const divBotoes = divRodape?.querySelector('#divBotoes');
-        if (divBotoes) {
-            divBotoes.innerHTML = '';
-        }
+        // COMENTADO: Teste - pode estar causando reinicialização
+        // const divRodape = document.getElementById('divRodape');
+        // const divBotoes = divRodape?.querySelector('#divBotoes');
+        // if (divBotoes) {
+        //     divBotoes.innerHTML = '';
+        // }
         
-        // Oculta o formulário
-        this.ocultar();
+        console.log('✅ Evento de encerramento disparado para o formulário específico');
     }
 
     _onPrimeiro() {
@@ -437,10 +438,10 @@ export class FormComum extends FormularioBase {
      * @param {Object} detalhe - Dados do evento
      */
     _dispararEventoCustomizado(acao, detalhe) {
-        // Busca o rodapé global para disparar o evento (mesmo padrão das selects)
-        const divRodape = document.getElementById('divRodape');
+        // Busca o footer do formulário para disparar o evento
+        const formFooter = document.querySelector('#divFormCrud footer');
         
-        if (divRodape) {
+        if (formFooter) {
             // Cria evento customizado com dados necessários
             const eventoCustom = new CustomEvent('formulario-acao', {
                 detail: {
@@ -452,12 +453,12 @@ export class FormComum extends FormularioBase {
                 bubbles: true  // Permite que o evento suba na árvore DOM
             });
             
-            // Dispara o evento no rodapé (será capturado pelo listener em ui_formularios.js)
-            divRodape.dispatchEvent(eventoCustom);
+            // Dispara o evento no footer do formulário
+            formFooter.dispatchEvent(eventoCustom);
             
-            console.log(`� Evento 'formulario-acao' disparado para ação '${acao}'`);
+            console.log(`✅ Evento 'formulario-acao' disparado no footer do formulário para ação '${acao}'`);
         } else {
-            console.warn('⚠️ Rodapé global não encontrado para disparar evento');
+            console.warn('⚠️ Footer do formulário não encontrado para disparar evento');
         }
     }
 
@@ -576,20 +577,17 @@ export class FormComum extends FormularioBase {
             this._criarSelects();
         }
         
-        // Remove botões duplicados do footer local e libera espaço no canvas
-        this._ocultarFooterLocal();
-        
         // Cria instância dos botões (antes de configurar rodapé)
         if (this.grupoBotoes) {
-            console.log('✅ Criando instância CriarBotoes com grupos:', this.grupoBotoes);
-            this.criarBotoes = new CriarBotoes(this.grupoBotoes);
+            console.log('✅ Criando instância CriarBtnRodape com grupos:', this.grupoBotoes);
+            this.criarBotoes = new CriarBtnRodape(this.grupoBotoes);
         }
         
-        // Configura os botões no rodapé global
+        // Configura os botões usando o método correto
         this._criarBotoesRodape();
         
-        // Configura eventos dos botões
-        this._configurarEventosBotoes();
+        // ✅ NECESSÁRIO: Configura listener para converter botao-clicado → formulario-acao  
+        this._configurarEscutaEventosRodape();
     }
 
     /**

@@ -1,5 +1,5 @@
 // Importando as classes necessárias do framework
-import { BarraDeBotoes } from './ConstrutorDeBarrasDeBotoes.js';
+import { CriarMenuAplicacao } from './ConstrutorMenuAplicacao.js';
 
 /**
  * Construtor de Interface de Aplicação
@@ -102,7 +102,7 @@ export class ConstrutorDeInterfaceAplicacao {
      * Baseado na lógica dos menus individuais do ui_menu.js
      */
     construirMenu(menuConfig) {
-        const menu = new BarraDeBotoes(
+        const menu = new CriarMenuAplicacao(
             menuConfig.botoes,
             menuConfig.orientacao || "horizontal",
             menuConfig.id,

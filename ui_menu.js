@@ -1,7 +1,7 @@
 // (Constantes removidas pois não estão mais em uso)
 
 // Importando as classes necessárias
-import { BarraDeBotoes } from './General_Classes/ConstrutorDeBarrasDeBotoes.js';
+import { CriarMenuAplicacao } from './General_Classes/ConstrutorMenuAplicacao.js';
 
 // Importando os handlers de eventos: (Os handlers de eventos precisam estar
 // no mesmo arquivo que o evento foi registrado, por isto se está importando)
@@ -29,7 +29,7 @@ export function criarTitulos(){
 //Criando o menu principal e sub menus
 export function constroiMenus() {
     // ====================== Menu principal =======================
-    const menu_princ = new BarraDeBotoes(
+    const menu_princ = new CriarMenuAplicacao(
         ["Extração de dados", "Reclassificar", "Cadastro", "Relatórios-1", "Relatórios-2", "Sair"],
         "horizontal",
         "id_menu_principal",
@@ -38,7 +38,7 @@ export function constroiMenus() {
     menu_princ.renderizar();
 
     // =============== Criando o sub menu Cadastro ===============
-    const menu_cadastro = new BarraDeBotoes(
+    const menu_cadastro = new CriarMenuAplicacao(
         ["Classificação", "Dicas de classificação", "Retornar"],
         "horizontal",
         "id_menu_cadastro",
@@ -48,7 +48,7 @@ export function constroiMenus() {
     document.getElementById("id_menu_cadastro").style.display = "none";
 
     // =============== Criando o sub menu Relatórios-1 ===============
-    const menu_rel_1 = new BarraDeBotoes(
+    const menu_rel_1 = new CriarMenuAplicacao(
         ["Despesas", "Despesas recorrentes", "RDM", "RDMCC", "Retornar"],
         "horizontal",
         "id_menu_rel_1",
@@ -58,7 +58,7 @@ export function constroiMenus() {
     document.getElementById("id_menu_rel_1").style.display = "none";
 
     // =============== Criando o sub menu Relatórios-2 ===============
-    const menu_rel_2 = new BarraDeBotoes(
+    const menu_rel_2 = new CriarMenuAplicacao(
         ["RDMCC ANO", "RDMCC 12M", "Retornar"],
         "horizontal",
         "id_menu_rel_2",
