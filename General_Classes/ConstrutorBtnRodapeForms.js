@@ -1,11 +1,80 @@
 /**
- ***************** ConstrutorBtnRodapeForms *******************
+ ****************                } catch (error) {
+                    console.error(`❌ REAL: Erro ao registrar listener para ${botaoId}:`, error);
+                }
+            } else {
+                console.warn(`⚠️ REAL: Elemento não encontrado para botão: ${botaoId}`);
+                        // TESTE: Verificar se o el        console.log(`📊 DEBUG: Total de listeners registrados: ${listenersRegistrados} de ${this.botoesElementos.size}`);
+        
+        // TESTE IMEDIATO: Buscar botão pelo ID e testar
+        console.log('🤖 TESTE IMEDIATO: Buscando botão Encerrar...');
+        const botaoTeste = document.getElementById('btn_encerrar');
+        if (botaoTeste) {
+            console.log('✅ TESTE: Botão encontrado pelo ID!');
+            console.log('📋 TESTE: Propriedades:', {
+                id: botaoTeste.id,
+                tagName: botaoTeste.tagName,
+                className: botaoTeste.className,
+                textContent: botaoTeste.textContent,
+                disabled: botaoTeste.disabled,
+                offsetWidth: botaoTeste.offsetWidth,
+                offsetHeight: botaoTeste.offsetHeight
+            });
+            
+            // Teste direto de clique
+            botaoTeste.onclick = function() {
+                console.log('🎯🎯🎯 TESTE MANUAL ONCLICK FUNCIONOU! 🎯🎯🎯');
+                alert('SUCESSO! Botão funcionou com onclick direto!');
+            };
+            
+            console.log('✅ TESTE: onclick adicionado! Agora clique manualmente no botão.');
+        } else {
+            console.error('❌ TESTE: Botão btn_encerrar NÃO encontrado!');
+        }
+    }ento é o correto
+                    console.log(`🔍 DETALHES ELEMENTO ${botaoId}:`);
+                    console.log(`  ID: "${elemento.id}"`);
+                    console.log(`  Classes: "${elemento.className}"`);
+                    console.log(`  TagName: "${elemento.tagName}"`);
+                    console.log(`  IsConnected: ${elemento.isConnected}`);
+                    console.log(`  Disabled: ${elemento.disabled}`);
+                    console.log(`  Style.display: "${elemento.style.display}"`);
+                    console.log(`  Style.visibility: "${elemento.style.visibility}"`);
+                    console.log(`  OffsetWidth: ${elemento.offsetWidth}`);
+                    console.log(`  OffsetHeight: ${elemento.offsetHeight}`);
+                    console.log(`  ParentElement:`, elemento.parentElement?.tagName);
+                    console.log(`  OuterHTML: ${elemento.outerHTML.substring(0, 150)}...`);}
+        });rutorBtnRodapeForms *******************
  * Constrói os grupos de botões dos formulários que são exibidos no rodapé da interface da aplicação
  */
 
 /**
  * Classe para construir botões de formulário com grupos configuráveis
- * Focada em flexibilidade de grupos (Encerrar, Navegação, CRUD)
+ *                     elemento.addEventListener('mouseleave', () => {
+                        this._resetarEstadoBotao(elemento, botaoId);
+                    });
+                    
+                    // Força reset quando focus é perdido
+                    elemento.addEventListener('blur', () => {
+                        this._resetarEstadoBotao(elemento, botaoId);
+                    });
+                    
+                    // Event listener para mouse hover
+                    elemento.addEventListener('mouseenter', () => {
+                        if (!elemento.disabled) {
+                            elemento.classList.add('hover-ativo');
+                        }
+                    });
+                } catch (error) {
+                    console.error('❌ DEBUG: ERRO ao registrar listeners para:', botaoId, error);
+                }
+            } else {
+                console.error('❌ DEBUG: Elemento não encontrado para:', botaoId);
+            }
+        });
+        
+        console.log('📊 DEBUG: Total de listeners registrados:', listenersRegistrados, 'de', this.botoesElementos.size);
+    }idade de grupos (Encerrar, Navegação, CRUD)
  * Sistema de ativação por array ['S','N','S'] para cada grupo
  */
 
@@ -207,6 +276,9 @@ export class CriarBtnRodape {
      * @private
      */
     _mapearElementos() {
+        console.log('🔍 DEBUG: this é:', this);
+        console.log('🔍 DEBUG: this.botoesElementos é:', this.botoesElementos);
+        
         // Lista de todos os possíveis botões
         const todosBotoes = [
             'btn_encerrar', 'btn_primeiro', 'btn_recua', 'btn_avanca', 
@@ -222,7 +294,6 @@ export class CriarBtnRodape {
         
         // Registra os event listeners após mapear todos os elementos
         this._registrarEventListeners();
-        console.log('✅ Botões mapeados e event listeners registrados');
     }
 
     /**
@@ -232,34 +303,66 @@ export class CriarBtnRodape {
      * @private
      */
     _registrarEventListeners() {
+        console.log('🔍 DEBUG: Iniciando _registrarEventListeners, Map tem:', this.botoesElementos.size, 'elementos');
+        
+        let listenersRegistrados = 0;
+        
         this.botoesElementos.forEach((elemento, botaoId) => {
             if (elemento) {
-                // Adiciona listener para cliques no botão
-                elemento.addEventListener('click', (event) => {
-                    this._handleBotaoClick(botaoId, event);
-                });
-                
-                // ========================================
-                // CORREÇÃO: Event listeners para mouse
-                // ========================================
-                // Força reset quando mouse sai do botão
-                elemento.addEventListener('mouseleave', () => {
-                    this._resetarEstadoBotao(elemento, botaoId);
-                });
-                
-                // Força reset quando focus é perdido
-                elemento.addEventListener('blur', () => {
-                    this._resetarEstadoBotao(elemento, botaoId);
-                });
-                
-                // Garante estado correto no mouseenter
-                elemento.addEventListener('mouseenter', () => {
-                    if (!elemento.disabled) {
-                        elemento.classList.add('hover-ativo');
-                    }
-                });
+                try {
+                    console.log(`🔧 REAL: Registrando listener MANUAL para botão: ${botaoId}`);
+                    
+                    // TESTE DEFINITIVO: Listener direto no onclick do elemento
+                    elemento.onclick = function(event) {
+                        console.log(`🎯🎯🎯 ONCLICK DIRETO FUNCIONOU! Botão: ${botaoId} 🎯🎯🎯`);
+                        console.log('📍 Elemento que foi clicado:', event.target);
+                        console.log('📍 ID do elemento:', event.target.id);
+                        console.log('📍 Classes:', event.target.className);
+                        this._handleBotaoClick(botaoId, event);
+                    }.bind(this);
+                    
+                    // Também mantém o addEventListener para comparar
+                    elemento.addEventListener('click', (event) => {
+                        console.log(`🎯 ADDEVENTLISTENER FUNCIONOU! Botão: ${botaoId}`);
+                        this._handleBotaoClick(botaoId, event);
+                    });
+                    
+                    // TESTE: Verificar se o elemento é o correto
+                    console.log(`� TESTE: Elemento ${botaoId}:`, {
+                        id: elemento.id,
+                        className: elemento.className,
+                        tagName: elemento.tagName,
+                        parentElement: elemento.parentElement,
+                        isConnected: elemento.isConnected
+                    });
+                    
+                    listenersRegistrados++;
+                    console.log(`✅ REAL: Listener registrado para: ${botaoId}`);
+                    
+                    // Event listeners para mouse
+                    elemento.addEventListener('mouseleave', () => {
+                        this._resetarEstadoBotao(elemento, botaoId);
+                    });
+                    
+                    elemento.addEventListener('blur', () => {
+                        this._resetarEstadoBotao(elemento, botaoId);
+                    });
+                    
+                    elemento.addEventListener('mouseenter', () => {
+                        if (!elemento.disabled) {
+                            elemento.classList.add('hover-ativo');
+                        }
+                    });
+                    
+                } catch (error) {
+                    console.error('❌ DEBUG: ERRO ao registrar listeners para:', botaoId, error);
+                }
+            } else {
+                console.error('❌ DEBUG: Elemento não encontrado para:', botaoId);
             }
         });
+        
+        console.log('📊 DEBUG: Total de listeners registrados:', listenersRegistrados, 'de', this.botoesElementos.size);
     }
     
     /**
@@ -305,6 +408,10 @@ export class CriarBtnRodape {
      * @private
      */
     _handleBotaoClick(botaoId, event) {
+        console.log('🎯🎯🎯 *** CLIQUE MANUAL DETECTADO! *** 🎯🎯🎯');
+        console.log('📍 PROVA ABSOLUTA: _handleBotaoClick foi chamado!');
+        console.log('🔍 Detalhes do clique:', { botaoId, event, target: event.target });
+        
         // Impede o comportamento padrão (submit do formulário)
         event.preventDefault();
         

@@ -1,12 +1,34 @@
 
 
 /**
- * Classe para construção dinâmica de formulários que herda de FormularioBase
- * Reaproveita TODAS as funcionalidades do sistema de formulários
- * + Sistema de campos label-elemento
- * + Posicionamento por linha/coluna
- * + Validação robusta
- * + Integração com CriarSelects (igual às tabelas)
+ * 🏗️ CLASSE PRINCIPAL: Construção dinâmica de formulários avançados
+ * 
+ * Herda TODAS as funcionalidades do FormularioBase e adiciona:
+ * ✅ Sistema de campos label-elemento configurável
+ * ✅ Posicionamento flexível por linha/coluna  
+ * ✅ Validação robusta e automática
+ * ✅ Integração com CriarSelects (mesmo padrão das tabelas)
+ * ✅ Sistema de botões configurável (Encerrar|Navegação|CRUD)
+ * ✅ Padrão de configuração por propriedades + render() manual
+ * 
+ * @example
+ * // NOVO PADRÃO: Configuração por propriedades + render manual
+ * const form = new FormComum();
+ * form.titulo = 'Cadastro de Grupos';
+ * form.descricao = '1º nível de classificação';
+ * form.tipo = ['input', 'textarea'];
+ * form.label = ['Grupo', 'Descrição'];
+ * form.nomeCampo = ['grupo', 'descricao'];
+ * form.format = ['texto', 'texto'];
+ * form.pos = [{linha: 0, coluna: 0}, {linha: 1, coluna: 0}];
+ * form.alinhamento = ['H', 'V'];
+ * form.largCampos = [25, 28];
+ * form.posicaoCanvas = {x: 3, y: 5};
+ * form.grupoBotoes = ['S', 'S', 'S']; // Encerrar + Navegação + CRUD
+ * form.render(); // ← Renderização MANUAL após configuração
+ * 
+ * @author Framework DSB
+ * @version 2.0.0 - Property-based configuration pattern
  */
 
 import { FormularioBase } from './ConstrutorDeFormularioBase.js';
@@ -14,42 +36,76 @@ import { CriarBtnRodape } from './ConstrutorBtnRodapeForms.js';
 import { CriarSelects } from './ConstrutorDeSelects.js';
 
 /**
- * Classe para for            const evento = new CustomEvent('formulario-acao', {
-                bubbles: true,
-                detail: {
-                    acao: acao,
-                    instancia: this,
-                    ...detalhe
-                }
-            });
-            
-            divRodape.dispatchEvent(evento);
-            console.log(`Evento customizado disparado: formulario-acao.${acao}`);, herda de FormularioBase
+ * 🎯 CLASSE FormComum - Formulários dinâmicos com configuração flexível
+ * 
+ * Permite duas formas de uso:
+ * 1️⃣ **Constructor com parâmetros** (modo legado, compatibilidade)  
+ * 2️⃣ **Property-based configuration** (RECOMENDADO - novo padrão)
+ * 
+ * @extends FormularioBase
+ * 
+ * @property {string} titulo - Título do formulário exibido no header
+ * @property {string} descricao - Descrição/subtítulo do formulário  
+ * @property {Array<string>} tipo - Tipos de campo: 'input'|'combo'|'radio'|'checkbox'|'textarea'
+ * @property {Array<string>} label - Rótulos dos campos exibidos ao usuário
+ * @property {Array<string>} nomeCampo - Nomes/IDs únicos dos campos (sem espaços)
+ * @property {Array<string|null>} format - Formatos: 'texto'|'moeda'|'pct'|'data'|null
+ * @property {Array<{linha: number, coluna: number}>} pos - Posições dos campos na grid
+ * @property {Array<string>} alinhamento - Orientação: 'H' (horizontal) | 'V' (vertical)  
+ * @property {Array<number>} largCampos - Larguras dos campos em rem
+ * @property {{x: number, y: number}} posicaoCanvas - Posição do formulário no canvas (vw/vh)
+ * @property {Array<string>} grupoBotoes - Grupos de botões: ['S'|'N', 'S'|'N', 'S'|'N'] para [Encerrar, Navegação, CRUD]
+ * @property {Object|null} configSelects - Config das selects: {labels, campos, larguras, arranjo}
+ * @property {CriarSelects|null} objSelect - Instância do sistema de selects (criado automaticamente)
+ * @property {CriarBtnRodape|null} criarBotoes - Instância do sistema de botões (criado no render)
+ * @property {Array<HTMLElement>} fields - Array com elementos DOM dos campos (preenchido no render)
+ * @property {Array<HTMLElement>} buttons - Array com elementos DOM dos botões (preenchido no render)
  */
 export class FormComum extends FormularioBase {
     /**
-     * Cria um formulário comum.
-     * @param {string} titulo - Título do formulário (ex: "Cadastro de Clientes")
-     * @param {string} descricao - Descrição do propósito do formulário (ex: "1o nível de classificação")
-     * @param {Array<string>} tipo - Lista de tipos de campo ('input', 'combo', 'radio', 'checkbox', 'textarea')
-     * @param {Array<string>} label - Lista de rótulos dos campos
-     * @param {Array<string>} nomeCampo - Lista de nomes/ids dos campos
-     * @param {Array<string|null>} format - Lista de formatos ('moeda', 'pct', 'data', null)
-     * @param {Array<Object>} pos - Lista de posições dos campos ({linha, coluna})
-     * @param {Array<string>} alinhamento - Lista de alinhamentos ('H' para horizontal, 'V' para vertical)
-     * @param {Array<string>} largCampos - Lista de larguras dos campos em rem
-     * @param {Object} posicaoCanvas - Posição {x, y} em vw/vh
-     * @param {Object} opcoes - Opções avançadas
-     * @param {Array<string>} opcoes.grupoBotoes - Array ['S'|'N', 'S'|'N', 'S'|'N'] para grupos [Encerrar, Navegação, CRUD]. Padrão: ['S','N','S']
-     * @param {Object} opcoes.selects - Configuração das selects: {labels: [], campos: [], larguras: [], arranjo: 'linha'|'coluna'}
+     * 🏗️ CONSTRUCTOR: Cria instância de formulário com configuração flexível
+     * 
+     * ⚡ NOVO PADRÃO: Constructor minimalista + configuração por propriedades
+     * 
+     * @param {string} [titulo=''] - Título do formulário para exibição no header
+     * @param {string} [descricao=''] - Descrição/subtítulo explicativo do formulário  
+     * @param {Array<string>} [tipo=[]] - Tipos de campo para cada elemento
+     * @param {Array<string>} [label=[]] - Rótulos/labels para cada campo
+     * @param {Array<string>} [nomeCampo=[]] - Nomes únicos para cada campo (IDs)
+     * @param {Array<string|null>} [format=[]] - Formatos de validação para cada campo
+     * @param {Array<{linha: number, coluna: number}>} [pos=[]] - Posições na grid para cada campo
+     * @param {Array<'H'|'V'>} [alinhamento=[]] - Orientação label-campo para cada elemento
+     * @param {Array<number>} [largCampos=[]] - Larguras em rem para cada campo
+     * @param {{x: number, y: number}} [posicaoCanvas={x: 3, y: 5}] - Posição do form no canvas
+     * @param {Object} [opcoes={}] - Configurações avançadas do formulário
+     * @param {Array<'S'|'N'>} [opcoes.grupoBotoes=['S','N','S']] - Grupos [Encerrar, Navegação, CRUD]
+     * @param {Object} [opcoes.selects] - Config selects: {labels, campos, larguras, arranjo}
+     * 
+     * @example
+     * // ✅ MODO RECOMENDADO: Property-based configuration
+     * const form = new FormComum();
+     * form.titulo = 'Cadastro Cliente';
+     * form.tipo = ['input', 'combo'];
+     * form.label = ['Nome', 'Status'];
+     * form.nomeCampo = ['nome', 'status'];
+     * form.format = ['texto', null];
+     * form.pos = [{linha: 0, coluna: 0}, {linha: 0, coluna: 1}];
+     * form.alinhamento = ['H', 'H'];  
+     * form.largCampos = [20, 15];
+     * form.grupoBotoes = ['S', 'N', 'S'];
+     * form.render(); // ← Renderização MANUAL
+     * 
+     * @example  
+     * // ✅ MODO LEGADO: Constructor parameters (compatibilidade)
+     * const form = new FormComum('Cadastro', 'Cliente', ['input'], ['Nome'], ['nome'], 
+     *                           ['texto'], [{linha:0, coluna:0}], ['H'], [20]);
+     * // Já renderiza automaticamente se todos os parâmetros fornecidos
      */
     constructor(titulo = '', descricao = '', tipo = [], label = [], nomeCampo = [], format = [], pos = [], alinhamento = [], largCampos = [], posicaoCanvas = {x: 3, y: 5}, opcoes = {}) {
         super(titulo, posicaoCanvas, 'comum');  // ✅ Correto: 'comum' em vez de 'formulario'
         
-        // Validação dos parâmetros
-        FormComum.validacao(tipo, label, nomeCampo, format, pos, alinhamento, largCampos);
-        
-        // Propriedades específicas do formulário
+        // 🎯 PROPRIEDADES CONFIGURÁVEIS (podem ser alteradas após instanciação)
+        this.titulo = titulo;
         this.descricao = descricao;
         this.tipo = tipo;
         this.label = label;
@@ -58,31 +114,78 @@ export class FormComum extends FormularioBase {
         this.pos = pos;
         this.alinhamento = alinhamento;
         this.largCampos = largCampos;
+        this.posicaoCanvas = posicaoCanvas;
         
-        // Arrays para controle dos campos
-        this.fields = [];
-        this.buttons = [];
+        // 🔧 PROPRIEDADES DE SISTEMA (controladas internamente)
+        this.fields = [];      // Elementos DOM dos campos (preenchido no render)
+        this.buttons = [];     // Elementos DOM dos botões (preenchido no render)
+        this.criarBotoes = null; // Instância CriarBtnRodape (criado no render)
+        this.objSelect = null;   // Instância CriarSelects (criado no render se necessário)
         
-        // Sistema de botões configurável (seguindo padrão das tabelas)
-        this.grupoBotoes = opcoes.grupoBotoes || ['S', 'N', 'S']; // Padrão: Encerrar + CRUD
-        this.criarBotoes = null; // Será criado no render()
+        // 🎛️ CONFIGURAÇÕES AVANÇADAS
+        this.grupoBotoes = opcoes.grupoBotoes || ['S', 'N', 'S']; // Padrão: Encerrar + CRUD (sem Navegação)
+        this.configSelects = opcoes.selects || null; // Configuração de selects para criação posterior
         
-        // Sistema de selects (seguindo padrão das tabelas)
-        this.objSelect = null;
-        if (opcoes.selects) {
-            const { labels, campos, larguras, arranjo = 'linha' } = opcoes.selects;
-            if (labels && campos && larguras) {
-                this.objSelect = new CriarSelects(labels, campos, larguras, arranjo);
-            }
+        // 🚀 RENDERIZAÇÃO CONDICIONAL 
+        // Se todos os parâmetros obrigatórios foram fornecidos → renderiza automaticamente (modo legado)
+        // Se parâmetros vazios → aguarda configuração manual + render() (novo padrão)
+        const temParametrosCompletos = tipo.length > 0 && label.length > 0 && nomeCampo.length > 0 && 
+                                     format.length > 0 && pos.length > 0 && alinhamento.length > 0 && largCampos.length > 0;
+        
+        if (temParametrosCompletos) {
+            // 🔄 MODO LEGADO: Constructor completo → renderização automática
+            console.log('🔄 FormComum: Modo legado - renderização automática');
+            this._validarParametros(); // Valida antes de renderizar
+            this.render();
+        } else {
+            // ⚡ NOVO PADRÃO: Configuração manual → aguarda render()
+            console.log('⚡ FormComum: Novo padrão - aguardando configuração manual + render()');
         }
-        
-        // ✅ RENDERIZAÇÃO AUTOMÁTICA - Seguindo padrão das tabelas
-        // O objeto já sai pronto para uso
-        this.render();
     }
 
     /**
-     * Validação dos parâmetros do formulário (método estático)
+     * 🔍 VALIDAÇÃO INTERNA: Valida parâmetros da instância atual
+     * 
+     * Chama o método estático de validação usando as propriedades da instância.
+     * Usado antes da renderização para garantir consistência dos dados.
+     * 
+     * @private
+     * @throws {Error} Se alguma validação falhar
+     */
+    _validarParametros() {
+        return FormComum.validacao(this.tipo, this.label, this.nomeCampo, this.format, this.pos, this.alinhamento, this.largCampos);
+    }
+
+    /**
+     * ✅ VALIDAÇÃO ESTÁTICA: Verificação completa de parâmetros do formulário  
+     * 
+     * Realiza verificações robustas em todos os arrays de configuração:
+     * • Tamanhos consistentes entre todos os arrays
+     * • Formatos válidos para campos  
+     * • Estrutura correta de posições {linha, coluna}
+     * • Alinhamentos válidos ('H' ou 'V')
+     * • Sequência correta de linhas e colunas
+     * 
+     * @static
+     * @param {Array<string>} tipo - Array de tipos de campo
+     * @param {Array<string>} label - Array de rótulos  
+     * @param {Array<string>} nomeCampo - Array de nomes de campo
+     * @param {Array<string|null>} format - Array de formatos
+     * @param {Array<{linha: number, coluna: number}>} pos - Array de posições
+     * @param {Array<'H'|'V'>} alinhamento - Array de alinhamentos
+     * @param {Array<number>} largCampos - Array de larguras
+     * @returns {boolean} true se todas as validações passaram
+     * @throws {Error} Descrição específica do erro encontrado
+     * 
+     * @example
+     * // ✅ Validação manual antes da configuração
+     * try {
+     *   FormComum.validacao(['input'], ['Nome'], ['nome'], ['texto'], 
+     *                      [{linha: 0, coluna: 0}], ['H'], [20]);
+     *   console.log('✅ Parâmetros válidos');
+     * } catch (error) {
+     *   console.error('❌ Erro de validação:', error.message);
+     * }
      */
     static validacao(tipo, label, nomeCampo, format, pos, alinhamento, largCampos) {
         const n = tipo.length;
@@ -309,8 +412,9 @@ export class FormComum extends FormularioBase {
             console.log('🔧 DEBUG FRAMEWORK: Container de botões encontrado:', containerBotoes);
             
             if (containerBotoes) {
+                console.log('🔧 DEBUG ConstrutorDeForms: Adicionando listener para botao-clicado');
                 containerBotoes.addEventListener('botao-clicado', (event) => {
-                    console.log('🔧 DEBUG FRAMEWORK: Evento botao-clicado capturado!', event.detail);
+                    console.log('🎯 DEBUG ConstrutorDeForms: *** EVENTO BOTAO-CLICADO RECEBIDO! ***', event.detail);
                 
                 const { acao, botaoId } = event.detail;
                 
@@ -329,15 +433,18 @@ export class FormComum extends FormularioBase {
                 
                 const acaoFormulario = mapeamentoAcoes[acao];
                 
+                console.log('🔄 DEBUG ConstrutorDeForms: Mapeando ação:', acao, '→', acaoFormulario);
+                
                 if (acaoFormulario) {
-                    console.log(`🔧 DEBUG FRAMEWORK: Convertendo '${acao}' → '${acaoFormulario}'`);
+                    console.log(`🎯 DEBUG ConstrutorDeForms: *** CONVERTENDO '${acao}' → '${acaoFormulario}' ***`);
                     
                     // Dispara o evento que os formulários específicos estão esperando
                     this._dispararEventoCustomizado(acaoFormulario, {
                         dados: this.obterDadosFormulario()
                     });
+                    console.log('✅ DEBUG ConstrutorDeForms: Evento formulario-acao DISPARADO!');
                 } else {
-                    console.warn(`🔧 DEBUG FRAMEWORK: Ação '${acao}' não mapeada`);
+                    console.warn(`❌ DEBUG ConstrutorDeForms: Ação '${acao}' NÃO MAPEADA!`);
                 }
             });
             
@@ -438,8 +545,12 @@ export class FormComum extends FormularioBase {
      * @param {Object} detalhe - Dados do evento
      */
     _dispararEventoCustomizado(acao, detalhe) {
+        console.log('🚀 DEBUG ConstrutorDeForms: _dispararEventoCustomizado chamado:', acao, detalhe);
+        
         // Busca o footer do formulário para disparar o evento
         const formFooter = document.querySelector('#divFormCrud footer');
+        
+        console.log('📍 DEBUG ConstrutorDeForms: Footer encontrado:', formFooter);
         
         if (formFooter) {
             // Cria evento customizado com dados necessários
@@ -453,16 +564,33 @@ export class FormComum extends FormularioBase {
                 bubbles: true  // Permite que o evento suba na árvore DOM
             });
             
+            console.log('🎯 DEBUG ConstrutorDeForms: *** DISPARANDO EVENTO formulario-acao ***', eventoCustom.detail);
+            
             // Dispara o evento no footer do formulário
             formFooter.dispatchEvent(eventoCustom);
-            
-            console.log(`✅ Evento 'formulario-acao' disparado no footer do formulário para ação '${acao}'`);
+            console.log('✅ DEBUG ConstrutorDeForms: Evento formulario-acao ENVIADO!');
         } else {
-            console.warn('⚠️ Footer do formulário não encontrado para disparar evento');
+            console.error('❌ DEBUG ConstrutorDeForms: Footer #divFormCrud footer NÃO ENCONTRADO!');
         }
     }
 
-    // Métodos auxiliares para controle do formulário
+    // ============= MÉTODOS AUXILIARES DE CONTROLE =============
+
+    /**
+     * 🧹 LIMPEZA: Remove todos os valores dos campos do formulário
+     * 
+     * Percorre todos os campos renderizados e aplica limpeza específica por tipo:
+     * • Input/Textarea/Select → value = ''
+     * • Checkbox/Radio → checked = false
+     * 
+     * ⚡ Útil para preparar formulário para nova entrada de dados
+     * 
+     * @example
+     * // Limpar formulário para novo registro
+     * formGrupos.limparCampos();
+     * 
+     * @since 1.0.0
+     */
     limparCampos() {
         this.fields.forEach(field => {
             const input = field.querySelector('input, select, textarea');
@@ -476,6 +604,23 @@ export class FormComum extends FormularioBase {
         });
     }
 
+    /**
+     * 🔒 CONTROLE DE ACESSO: Habilita/desabilita todos os campos do formulário
+     * 
+     * Altera a propriedade `disabled` de todos os elementos de entrada.
+     * Útil para controlar modo de visualização vs edição.
+     * 
+     * @param {boolean} [habilitar=true] - true para habilitar campos, false para desabilitar
+     * 
+     * @example
+     * // Modo somente leitura
+     * formGrupos.habilitarCampos(false);
+     * 
+     * // Modo edição
+     * formGrupos.habilitarCampos(true);
+     * 
+     * @since 1.0.0
+     */
     habilitarCampos(habilitar = true) {
         this.fields.forEach(field => {
             const input = field.querySelector('input, select, textarea');
@@ -557,37 +702,95 @@ export class FormComum extends FormularioBase {
     }
 
     /**
-     * Renderização completa do formulário (OVERRIDE da classe base)
+     * 🎨 RENDERIZAÇÃO COMPLETA: Constrói e exibe o formulário no DOM
+     * 
+     * Executa toda a sequência de renderização do formulário:
+     * 1️⃣ Valida parâmetros de configuração
+     * 2️⃣ Configura container base e posicionamento
+     * 3️⃣ Aplica título e descrição no header  
+     * 4️⃣ Cria e posiciona campos na grid
+     * 5️⃣ Renderiza selects (se configuradas)
+     * 6️⃣ Configura sistema de botões do rodapé
+     * 7️⃣ Estabelece listeners de eventos
+     * 
+     * ⚠️ IMPORTANTE: Este método deve ser chamado APÓS configurar todas as propriedades necessárias
+     * 
+     * @throws {Error} Se parâmetros de configuração estiverem inválidos
+     * @throws {Error} Se propriedades obrigatórias não estiverem definidas
+     * 
+     * @example
+     * // ✅ Uso correto: configurar → validar → renderizar
+     * const form = new FormComum();
+     * form.titulo = 'Meu Formulário';
+     * form.tipo = ['input', 'textarea'];
+     * form.label = ['Nome', 'Observações'];  
+     * form.nomeCampo = ['nome', 'obs'];
+     * form.format = ['texto', 'texto'];
+     * form.pos = [{linha: 0, coluna: 0}, {linha: 1, coluna: 0}];
+     * form.alinhamento = ['H', 'V'];
+     * form.largCampos = [20, 30];
+     * form.render(); // ← Renderização manual após configuração completa
+     * 
+     * @since 2.0.0 Método otimizado com validação prévia
      */
     render() {
-        // Configuração específica do formulário
+        // 🔍 VALIDAÇÃO PRÉVIA: Garante que todas as propriedades estão corretas
+        try {
+            this._validarParametros();
+        } catch (error) {
+            console.error('❌ FormComum.render(): Erro de validação -', error.message);
+            throw new Error(`Não é possível renderizar formulário: ${error.message}`);
+        }
+        
+        // 🏗️ CONFIGURAÇÃO BASE: Container e posicionamento
         this.configurarContainer();
         this.posicionarNoCanvas(this.posicaoCanvas.x, this.posicaoCanvas.y);
         this.exibir();
         
-        // Aplica título e descrição
+        // 📝 HEADER: Título e descrição
         this.configurarHeader(this.titulo, this.descricao);
         
-        // Cria e posiciona os campos
+        // 🎛️ CAMPOS: Criação e posicionamento na grid
         this._criarDivsCampos();
         this._posicionarDivs();
         
-        // Renderiza selects se configuradas (igual às tabelas)
-        if (this.objSelect) {
+        // 📋 SELECTS: Renderização se configuradas
+        if (this.configSelects) {
+            this._criarSelectsConfig();
+        } else if (this.objSelect) {
             this._criarSelects();
         }
         
-        // Cria instância dos botões (antes de configurar rodapé)
+        // 🔘 BOTÕES: Sistema do rodapé
         if (this.grupoBotoes) {
             console.log('✅ Criando instância CriarBtnRodape com grupos:', this.grupoBotoes);
             this.criarBotoes = new CriarBtnRodape(this.grupoBotoes);
+            this._criarBotoesRodape();
         }
         
-        // Configura os botões usando o método correto
-        this._criarBotoesRodape();
-        
-        // ✅ NECESSÁRIO: Configura listener para converter botao-clicado → formulario-acao  
+        // 🎧 EVENTOS: Configuração de listeners
         this._configurarEscutaEventosRodape();
+        
+        console.log('✅ FormComum.render(): Formulário renderizado com sucesso');
+    }
+
+    /**
+     * 🔧 CRIAÇÃO DE SELECTS: A partir da configuração armazenada
+     * 
+     * Cria instância CriarSelects usando this.configSelects e renderiza no formulário.
+     * Usado quando selects são configuradas via propriedade configSelects.
+     * 
+     * @private
+     * @since 2.0.0
+     */
+    _criarSelectsConfig() {
+        if (!this.configSelects) return;
+        
+        const { labels, campos, larguras, arranjo = 'linha' } = this.configSelects;
+        if (labels && campos && larguras) {
+            this.objSelect = new CriarSelects(labels, campos, larguras, arranjo);
+            this._criarSelects();
+        }
     }
 
     /**
@@ -656,37 +859,166 @@ export class FormComum extends FormularioBase {
         return false;
     }
 
+    // ============= MÉTODOS DE SELECTS =============
+
     /**
-     * Obtém valores selecionados em todas as selects
-     * @returns {Object} {campo: valor} dos selects preenchidos
+     * 📋 OBTER VALORES: Recupera valores selecionados em todas as selects
+     * 
+     * Extrai os valores atualmente selecionados de todas as selects configuradas no formulário.
+     * Retorna objeto com mapeamento campo → valor.
+     * 
+     * @returns {Object<string, string>} Mapeamento {campo: valor} das selects preenchidas
+     * @returns {Object} Objeto vazio se não há selects configuradas
+     * 
+     * @example
+     * const valores = formGrupos.obterValoresSelects();
+     * console.log(valores); // {grupo_nav: "3", status_nav: "ativo"}
+     * 
+     * @since 1.0.0
      */
     obterValoresSelects() {
         if (this.objSelect) {
             return this.objSelect.obterValores();
         }
-        console.warn('❌ Selects não configuradas neste formulário');
+        console.warn('❌ FormComum.obterValoresSelects(): Selects não configuradas neste formulário');
         return {};
     }
 
     /**
-     * Obtém elemento select específico
-     * @param {string} campo - Nome do campo
-     * @returns {HTMLSelectElement|null} Elemento select
+     * 🎯 OBTER ELEMENTO: Recupera elemento DOM de select específica
+     * 
+     * Retorna a referência direta ao elemento HTML <select> para manipulação avançada.
+     * 
+     * @param {string} campo - Nome do campo da select desejada
+     * @returns {HTMLSelectElement|null} Elemento select ou null se não encontrado
+     * 
+     * @example
+     * const selectGrupo = formGrupos.obterElementoSelect('grupo_nav');
+     * if (selectGrupo) {
+     *   selectGrupo.addEventListener('change', minhaFuncao);
+     * }
+     * 
+     * @since 1.0.0
      */
     obterElementoSelect(campo) {
         if (this.objSelect) {
             return this.objSelect.obterElementoSelect(campo);
         }
-        console.warn('❌ Selects não configuradas neste formulário');
+        console.warn('❌ FormComum.obterElementoSelect(): Selects não configuradas neste formulário');
         return null;
     }
 
     /**
-     * Verifica se o formulário tem selects configuradas
-     * @returns {boolean} True se tem selects
+     * ✅ VERIFICAÇÃO: Confirma se o formulário possui selects configuradas
+     * 
+     * @returns {boolean} true se existem selects configuradas, false caso contrário
+     * 
+     * @example
+     * if (formGrupos.temSelects()) {
+     *   console.log('Formulário tem selects disponíveis');
+     * }
+     * 
+     * @since 1.0.0
      */
     temSelects() {
         return this.objSelect !== null;
+    }
+
+    /**
+     * 🔄 POPULAR SELECT: Preenche opções de uma select específica
+     * 
+     * Método de conveniência para popular uma select com array de opções.
+     * 
+     * @param {string} campo - Nome do campo da select
+     * @param {Array<{value: string, text: string}>} opcoes - Array de opções
+     * 
+     * @example
+     * formGrupos.popularSelect('grupo_nav', [
+     *   {value: '1', text: 'Alimentação'},
+     *   {value: '2', text: 'Transporte'}
+     * ]);
+     * 
+     * @since 2.0.0
+     */
+    popularSelect(campo, opcoes) {
+        if (this.objSelect) {
+            this.objSelect.popularSelect(campo, opcoes);
+        } else {
+            console.warn('❌ FormComum.popularSelect(): Selects não configuradas neste formulário');
+        }
+    }
+
+    // ============= MÉTODOS DE DADOS =============
+
+    /**
+     * 📊 OBTER DADOS: Extrai todos os valores dos campos do formulário
+     * 
+     * Coleta valores de todos os campos renderizados e retorna objeto estruturado.
+     * Útil para validação e envio de dados.
+     * 
+     * @returns {Object<string, string|boolean>} Objeto com dados do formulário {campo: valor}
+     * 
+     * @example
+     * const dados = formGrupos.obterDados();
+     * console.log(dados); // {grupo: "Alimentação", descricao: "Despesas com alimentação"}
+     * 
+     * @since 2.0.0
+     */
+    obterDados() {
+        const dados = {};
+        
+        this.fields.forEach((field, index) => {
+            const input = field.querySelector('input, select, textarea');
+            const nomeCampo = this.nomeCampo[index];
+            
+            if (input && nomeCampo) {
+                if (input.type === 'checkbox' || input.type === 'radio') {
+                    dados[nomeCampo] = input.checked;
+                } else {
+                    dados[nomeCampo] = input.value;
+                }
+            }
+        });
+        
+        return dados;
+    }
+
+    /**
+     * 📝 PREENCHER DADOS: Define valores nos campos do formulário
+     * 
+     * Preenche os campos do formulário com dados de um objeto.
+     * Útil para edição de registros existentes.
+     * 
+     * @param {Object<string, string|boolean>} dados - Objeto com dados para preencher
+     * 
+     * @example
+     * formGrupos.preencherDados({
+     *   grupo: "Transporte", 
+     *   descricao: "Gastos com locomoção"
+     * });
+     * 
+     * @since 2.0.0
+     */
+    preencherDados(dados) {
+        if (!dados || typeof dados !== 'object') {
+            console.warn('❌ FormComum.preencherDados(): Dados inválidos fornecidos');
+            return;
+        }
+        
+        this.fields.forEach((field, index) => {
+            const input = field.querySelector('input, select, textarea');
+            const nomeCampo = this.nomeCampo[index];
+            
+            if (input && nomeCampo && dados.hasOwnProperty(nomeCampo)) {
+                const valor = dados[nomeCampo];
+                
+                if (input.type === 'checkbox' || input.type === 'radio') {
+                    input.checked = Boolean(valor);
+                } else {
+                    input.value = valor || '';
+                }
+            }
+        });
     }
 
     // ============= MÉTODOS DE EVENTOS INTERNOS =============
