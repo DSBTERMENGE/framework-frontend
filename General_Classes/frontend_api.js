@@ -692,44 +692,47 @@ export class api_fe {
      *     ordenacao: "data_desc"
      * });
      */
-    async popularform(formulario_ou_tipo, configuracao = {}, opcoes = {}) {
+    async consulta_dados_form() {
         try {
-            console.log('📋 popularform() iniciado:', {
-                formulario: formulario_ou_tipo,
-                configuracao,
-                opcoes
-            });
+            console.log('📋 consulta_dados_form() iniciado');
             
             // Validação básica
             if (!this.view) {
                 throw new Error("View não configurada. Configure this.view primeiro.");
             }
             
-            // Faz requisição ao backend usando buscar_todos
-            // TODO: Implementar ordenação quando estiver disponível no backend
-            const registros = await this.buscar_todos();
-            
-            // Retorna dados recebidos ou dicionário vazio se não houver dados
-            const resultado = {
-                sucesso: true,
-                dados: registros || [],
-                total: registros ? registros.length : 0,
-                formulario: formulario_ou_tipo
+            // Faz requisição direta para o endpoint /consultar_dados_db
+            const url = `${this.backend_url}/consultar_dados_db`;
+            const payload = {
+                view: this.view,
+                campos: this.campos || ["Todos"],
+                database_path: this.database_path || "",
+                database_name: this.database_name || ""
             };
             
-            console.log(`✅ popularform() concluído: ${resultado.total} registros recebidos`);
-            return resultado;
+            console.log(`🌐 Fazendo requisição para: ${url}`, payload);
+            
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: this.headers,
+                body: JSON.stringify(payload)
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const resultado = await response.json();
+            console.log(`✅ consulta_dados_form() concluído:`, resultado);
+            
+            return resultado; // Backend já retorna no formato { dados: [...], mensagem: "sucesso" }
             
         } catch (error) {
-            console.error('❌ Erro no popularform():', error);
+            console.error('❌ Erro no consulta_dados_form():', error);
             
-            // Retorna dicionário vazio em caso de erro
             return {
-                sucesso: false,
                 dados: [],
-                total: 0,
-                erro: error.message,
-                formulario: formulario_ou_tipo
+                mensagem: error.message
             };
         }
     }

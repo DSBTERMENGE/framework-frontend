@@ -36,63 +36,42 @@ INTEGRAÇÃO:
 
 /**
  * Popula formulário com dados recebidos da API
- * 
- * OPERAÇÃO DE LEITURA - Propriedades necessárias:
- * - window.api_finctl.view (obrigatório) - Nome da view para consulta
- * - window.api_finctl.campos (opcional) - Campos a retornar (padrão: ["Todos"])
- * 
- * Propriedades NÃO usadas em leitura:
- * - tabela_alvo (só para operações CRUD)
- * - campos_obrigatorios (só para validação em CRUD)
- * 
- * @param {string} formulario - Nome do formulário
- * @param {Object} parametros - Parâmetros de consulta (ordenacao, filtros, etc.)
  */
-export async function popularFormulario(formulario, parametros = {}) {
+export async function popularFormulario() {
     try {
-        console.log(`📋 Populando formulário - ${formulario}`, parametros);
+        console.log(`📋 Populando formulário`);
         
-        // ✅ ESPECIALIZAÇÃO: Acessa dados via API global e invoca função da API do cliente
         if (!window.api_finctl) {
             throw new Error("API global não disponível (window.api_finctl)");
         }
         
-        // ✅ FLUXO: OperacoesCRUD → window.api_finctl.popularform()
-        const resultadoAPI = await window.api_finctl.popularform(formulario, {
-            ordenacao: parametros.ordenacao
-        }, parametros.parametros);
+        const resultadoAPI = await window.api_finctl.consulta_dados_form();
         
-        // ✅ NOVA ESTRUTURA: Verifica se houve erro
-        if (!resultadoAPI || !resultadoAPI.dados) {
-            console.log(`⚠️ Nenhum dado disponível para popular - ${formulario}`);
+        if (resultadoAPI.mensagem === "sucesso") {
+            const dadosRecebidos = resultadoAPI.dados;
+            if (dadosRecebidos && dadosRecebidos.length > 0) {
+                _popularFormularioAutomatico(dadosRecebidos[0]);
+                _popularSelectNavegacao(dadosRecebidos);
+            }
+            
+            console.log(`✅ Formulário populado com ${dadosRecebidos.length} registros`);
+            
+            return { 
+                sucesso: true, 
+                registros: dadosRecebidos.length,
+                dados: dadosRecebidos
+            };
+        } else {
+            console.log(`⚠️ Erro na consulta: ${resultadoAPI.mensagem}`);
             return { 
                 sucesso: false, 
-                mensagem: "Nenhum dado disponível",
+                mensagem: resultadoAPI.mensagem,
                 registros: 0
             };
         }
         
-        // ✅ POPULAÇÃO AUTOMÁTICA: Se dados recebidos, popula formulário
-        const dadosRecebidos = resultadoAPI.dados;
-        if (dadosRecebidos && dadosRecebidos.length > 0) {
-            // População automática por convenção de nomes
-            _popularFormularioAutomatico(formulario, dadosRecebidos[0]); // Primeiro registro
-            
-            // Popular select de navegação se existir
-            _popularSelectNavegacao(formulario, dadosRecebidos);
-        }
-        
-        console.log(`✅ Formulário ${formulario} populado com ${dadosRecebidos.length} registros`);
-        
-        return { 
-            sucesso: true, 
-            registros: dadosRecebidos.length,
-            formulario: formulario,
-            dados: dadosRecebidos
-        };
-        
     } catch (error) {
-        console.error(`❌ Erro ao popular formulário - ${formulario}:`, error);
+        console.error(`❌ Erro ao popular formulário:`, error);
         return { sucesso: false, erro: error.message };
     }
 }
@@ -101,19 +80,17 @@ export async function popularFormulario(formulario, parametros = {}) {
 
 /**
  * Navega para o primeiro registro
- * @param {string} formulario - Nome do formulário
  */
-export async function navegarPrimeiro(formulario) {
-    console.log(`🏁 Navegando para primeiro registro - ${formulario}`);
+export async function navegarPrimeiro() {
+    console.log(`🏁 Navegando para primeiro registro`);
     // TODO: Implementar navegação primeiro
 }
 
 /**
  * Navega para o último registro
- * @param {string} formulario - Nome do formulário
  */
-export async function navegarUltimo(formulario) {
-    console.log(`🏁 Navegando para último registro - ${formulario}`);
+export async function navegarUltimo() {
+    console.log(`🏁 Navegando para último registro`);
     // TODO: Implementar navegação último
 }
 
@@ -226,13 +203,12 @@ export async function removerRegistro(formulario, id) {
  * @param {string} formulario - Nome do formulário
  * @param {Object} dados - Dados do primeiro registro
  */
-function _popularFormularioAutomatico(formulario, dados) {
-    console.log(`🔄 Populando formulário ${formulario} automaticamente:`, dados);
+function _popularFormularioAutomatico(dados) {
+    console.log(`🔄 Populando formulário automaticamente:`, dados);
     
     for (const [campo, valor] of Object.entries(dados)) {
         console.log(`🔍 Procurando elemento para campo: ${campo} = ${valor}`);
         
-        // Procura elemento por name, id ou querySelector
         const elemento = document.querySelector(`[name="${campo}"]`) || 
                          document.querySelector(`#${campo}`) ||
                          document.querySelector(`input[id*="${campo}"], textarea[id*="${campo}"], select[id*="${campo}"]`);
@@ -242,14 +218,6 @@ function _popularFormularioAutomatico(formulario, dados) {
             console.log(`✅ Campo ${campo} populado: ${valor}`);
         } else {
             console.warn(`⚠️ Elemento não encontrado para campo: ${campo}`);
-            // Debug adicional: listar todos os inputs/textareas disponíveis
-            const todosElementos = document.querySelectorAll('input, textarea, select');
-            console.log('📋 Elementos disponíveis:', Array.from(todosElementos).map(el => ({
-                tag: el.tagName,
-                name: el.name,
-                id: el.id,
-                class: el.className
-            })));
         }
     }
 }
@@ -288,11 +256,9 @@ function _popularSelectNavegacao(formulario, dados) {
 
 /**
  * Atualiza interface após operação
- * @param {string} formulario - Nome do formulário
- * @param {string} operacao - Tipo de operação executada
  */
-export function atualizarInterface(formulario, operacao) {
-    console.log(`🔄 Atualizando interface - ${formulario} após ${operacao}`);
+export function atualizarInterface(operacao) {
+    console.log(`🔄 Atualizando interface após ${operacao}`);
     // TODO: Implementar atualização de interface
 }
 
