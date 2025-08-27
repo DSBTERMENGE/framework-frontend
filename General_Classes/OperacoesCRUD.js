@@ -50,6 +50,13 @@ export async function popularFormulario() {
         if (resultadoAPI.mensagem === "sucesso") {
             const dadosRecebidos = resultadoAPI.dados;
             if (dadosRecebidos && dadosRecebidos.length > 0) {
+                // ✅ INICIALIZA NAVEGAÇÃO DIRETAMENTE (otimização sugerida pelo usuário)
+                dadosDisponiveis = dadosRecebidos || [];
+                reg_num = 0; // SEMPRE INICIA EM 0 (primeiro registro = índice 0)
+                console.log(`📊 Navegação inicializada: ${dadosDisponiveis.length} registros disponíveis`);
+                console.log(`📍 Posição atual: reg_num=${reg_num} (registro ${reg_num + 1} de ${dadosDisponiveis.length})`);
+                
+                // ✅ POPULA FORMULÁRIO COM PRIMEIRO REGISTRO (reg_num = 0)
                 _popularFormularioAutomatico(dadosRecebidos[0]);
                 _popularSelectNavegacao(dadosRecebidos);
             }
@@ -74,42 +81,6 @@ export async function popularFormulario() {
         console.error(`❌ Erro ao popular formulário:`, error);
         return { sucesso: false, erro: error.message };
     }
-}
-
-// ============= OPERAÇÕES DE NAVEGAÇÃO =============
-
-/**
- * Navega para o primeiro registro
- */
-export async function navegarPrimeiro() {
-    console.log(`🏁 Navegando para primeiro registro`);
-    // TODO: Implementar navegação primeiro
-}
-
-/**
- * Navega para o último registro
- */
-export async function navegarUltimo() {
-    console.log(`🏁 Navegando para último registro`);
-    // TODO: Implementar navegação último
-}
-
-/**
- * Navega para o registro anterior
- * @param {string} formulario - Nome do formulário
- */
-export async function navegarAnterior(formulario) {
-    console.log(`⬅️ Navegando para registro anterior - ${formulario}`);
-    // TODO: Implementar navegação anterior
-}
-
-/**
- * Navega para o próximo registro
- * @param {string} formulario - Nome do formulário
- */
-export async function navegarProximo(formulario) {
-    console.log(`➡️ Navegando para próximo registro - ${formulario}`);
-    // TODO: Implementar navegação próximo
 }
 
 // ============= OPERAÇÕES DE FILTRO =============
@@ -207,6 +178,12 @@ function _popularFormularioAutomatico(dados) {
     console.log(`🔄 Populando formulário automaticamente:`, dados);
     
     for (const [campo, valor] of Object.entries(dados)) {
+        // ✅ FILTRO: Ignora campos que não devem ser exibidos (como 'id')
+        if (campo === 'id') {
+            console.log(`🔍 Campo ${campo} = ${valor} (ignorado - campo interno)`);
+            continue; // Pula para o próximo campo
+        }
+        
         console.log(`🔍 Procurando elemento para campo: ${campo} = ${valor}`);
         
         const elemento = document.querySelector(`[name="${campo}"]`) || 
@@ -274,6 +251,292 @@ export function mostrarLoading(mostrar) {
         console.log('✅ Ocultando loading...');
     }
 }
+
+// ============= SISTEMA DE NAVEGAÇÃO GENÉRICO =============
+
+// 📊 VARIÁVEIS DE CONTROLE DE NAVEGAÇÃO
+let dadosDisponiveis = [];  // Array com todos os registros carregados
+let reg_num = 0;           // ÍNDICE ATUAL (BASE 0) - corresponde ao índice do array
+let contadorExecucoes = 0; // Contador para detectar execuções múltiplas
+let listenerConfigurado = false; // Flag para evitar listeners duplicados
+
+/**
+ * 🔊 BEEP DE AVISO: Emite som quando usuário tenta ir além dos limites
+ * @param {string} limite - Tipo de limite atingido ('primeiro' ou 'ultimo')
+ */
+function emitirBeepLimite(limite) {
+    // Beep do sistema usando AudioContext (mais compatível)
+    try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.value = 800; // Frequência do beep
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.2);
+        
+        console.log(`🔊 BEEP: Limite ${limite} atingido!`);
+    } catch (error) {
+        // Fallback: alert ou console se AudioContext não disponível
+        console.log(`🔊 BEEP: Limite ${limite} atingido! (AudioContext não disponível)`);
+    }
+}
+
+/**
+ * 🎯 CONFIGURAÇÃO DE LISTENERS: Sistema de navegação genérico para todos os formulários
+ * Intercepta eventos 'formulario-acao' e processa navegação de forma unificada
+ */
+function configurarListenersNavegacao() {
+    // ✅ PROTEÇÃO: Evita listeners duplicados
+    if (listenerConfigurado) {
+        console.log('⚠️ DEBUG OperacoesCRUD: Listener já configurado - ignorando');
+        return;
+    }
+    
+    setTimeout(() => {
+        const formFooter = document.querySelector('#divFormCrud footer');
+        if (formFooter) {
+            console.log('🔧 DEBUG OperacoesCRUD: Configurando listeners de navegação genéricos');
+            
+            formFooter.addEventListener('formulario-acao', function(event) {
+                const { acao, instancia, dados } = event.detail;
+                
+                console.log('🚨🚨🚨 TESTE BREAKPOINT: OperacoesCRUD RECEBEU EVENTO! 🚨🚨🚨');
+                console.log('📍 Evento capturado no OperacoesCRUD.js:', acao);
+                console.log('📊 Detalhes completos:', event.detail);
+                
+                // Processa apenas ações de navegação
+                if (['primeiro', 'anterior', 'proximo', 'ultimo'].includes(acao)) {
+                    console.log(`🎯 DEBUG OperacoesCRUD: Processando navegação genérica: ${acao}`);
+                    console.log('🔄 DIRECIONANDO PARA processarNavegacaoGenerica...');
+                    processarNavegacaoGenerica(acao, instancia, dados);
+                } else {
+                    console.log(`⚠️ AÇÃO NÃO É DE NAVEGAÇÃO: ${acao} (ignorando)`);
+                }
+            });
+            
+            listenerConfigurado = true; // Marca como configurado
+            console.log('✅ DEBUG OperacoesCRUD: Listeners de navegação configurados');
+        } else {
+            console.error('❌ DEBUG OperacoesCRUD: Footer não encontrado!');
+        }
+    }, 200);
+}
+
+/**
+ * 🔄 PROCESSADOR PRINCIPAL: Switch case para ações de navegação
+ * @param {string} acao - Ação de navegação (primeiro, anterior, proximo, ultimo)
+ * @param {Object} instancia - Instância do formulário
+ * @param {Object} dados - Dados do formulário
+ */
+function processarNavegacaoGenerica(acao, instancia, dados) {
+    console.log('🚨🚨🚨 CHEGOU NO processarNavegacaoGenerica! 🚨🚨🚨');
+    console.log(`🔄 Processando navegação: ${acao}`);
+    console.log('📊 Instância recebida:', instancia);
+    console.log('📊 Dados recebidos:', dados);
+    
+    switch(acao) {
+        case 'primeiro':
+            console.log('🎯 DIRECIONANDO PARA: navegarParaPrimeiro');
+            navegarParaPrimeiro(instancia);
+            break;
+        case 'anterior':
+            console.log('🎯 DIRECIONANDO PARA: navegarParaAnterior');
+            navegarParaAnterior(instancia);
+            break;
+        case 'proximo':
+            console.log('🎯 DIRECIONANDO PARA: navegarParaProximo');
+            navegarParaProximo(instancia);
+            break;
+        case 'ultimo':
+            console.log('🎯 DIRECIONANDO PARA: navegarParaUltimo');
+            navegarParaUltimo(instancia);
+            break;
+        default:
+            console.warn(`❓ Ação de navegação não reconhecida: ${acao}`);
+            break;
+    }
+}
+
+// ============= FUNÇÕES DE NAVEGAÇÃO (ESTRUTURA) =============
+
+/**
+ * 🏁 Navegar para o primeiro registro
+ */
+function navegarParaPrimeiro(instancia) {
+    const timestampExecucao = Date.now();
+    console.log(`🚨🚨🚨 CHEGOU EM navegarParaPrimeiro! (${timestampExecucao}) 🚨🚨🚨`);
+    console.log('🏁 Tentando navegar para primeiro registro');
+    console.log('📊 Instância disponível:', instancia);
+    
+    // ✅ PROTEÇÃO: Detecta execuções muito próximas (possível duplicação)
+    if (window.ultimaExecucaoPrimeiro && (timestampExecucao - window.ultimaExecucaoPrimeiro) < 100) {
+        console.log(`🚫 EXECUÇÃO DUPLICADA DETECTADA! Ignorando (diferença: ${timestampExecucao - window.ultimaExecucaoPrimeiro}ms)`);
+        return;
+    }
+    window.ultimaExecucaoPrimeiro = timestampExecucao;
+    
+    // ✅ VALIDAÇÃO: Verifica se há dados disponíveis
+    if (!dadosDisponiveis || dadosDisponiveis.length === 0) {
+        console.warn('⚠️ Nenhum dado disponível para navegação');
+        return;
+    }
+    
+    // ✅ CONTROLE DE LIMITE: Verifica se já está no primeiro (BASE 0)
+    if (reg_num === 0) {
+        console.log('🔊 Já está no primeiro registro (reg_num=0) - emitindo beep');
+        emitirBeepLimite('primeiro');
+        return;
+    }
+    
+    // ✅ NAVEGAÇÃO: Move para primeiro registro (reg_num = 0)
+    reg_num = 0;
+    console.log(`📍 Navegou para primeiro: reg_num=${reg_num} (registro ${reg_num + 1} de ${dadosDisponiveis.length})`);
+    
+    // ✅ ATUALIZAÇÃO: Popula formulário com novo registro
+    _popularFormularioAutomatico(dadosDisponiveis[reg_num]);
+    console.log('✅ Formulário atualizado com primeiro registro');
+}
+
+/**
+ * ⬅️ Navegar para o registro anterior
+ */
+function navegarParaAnterior(instancia) {
+    contadorExecucoes++;
+    const timestampExecucao = Date.now();
+    console.log(`🚨🚨🚨 CHEGOU EM navegarParaAnterior! EXECUÇÃO #${contadorExecucoes} (${timestampExecucao}) 🚨🚨🚨`);
+    console.log(`⬅️ ESTADO INICIAL: reg_num=${reg_num} (registro ${reg_num + 1} de ${dadosDisponiveis.length})`);
+    console.log('📊 Instância disponível:', instancia);
+    
+    // ✅ PROTEÇÃO: Detecta execuções muito próximas (possível duplicação)
+    if (window.ultimaExecucaoAnterior && (timestampExecucao - window.ultimaExecucaoAnterior) < 100) {
+        console.log(`🚫 EXECUÇÃO DUPLICADA DETECTADA! Ignorando (diferença: ${timestampExecucao - window.ultimaExecucaoAnterior}ms)`);
+        return;
+    }
+    window.ultimaExecucaoAnterior = timestampExecucao;
+    
+    // ✅ VALIDAÇÃO: Verifica se há dados disponíveis
+    if (!dadosDisponiveis || dadosDisponiveis.length === 0) {
+        console.warn('⚠️ Nenhum dado disponível para navegação');
+        return;
+    }
+    
+    console.log(`🔍 VERIFICAÇÃO: reg_num=${reg_num}, condição (reg_num <= 0) = ${reg_num <= 0}`);
+    
+    // ✅ CONTROLE DE LIMITE: Verifica se já está no primeiro (BASE 0: reg_num <= 0)
+    if (reg_num <= 0) {
+        console.log('🔊 Já está no primeiro registro (reg_num<=0) - não pode ir para anterior - emitindo beep');
+        emitirBeepLimite('primeiro');
+        return;
+    }
+    
+    // ✅ NAVEGAÇÃO: Move um registro para trás (reg_num = reg_num - 1)
+    console.log(`🔄 ANTES DO DECREMENTO: reg_num=${reg_num}`);
+    reg_num--;
+    console.log(`🔄 APÓS DECREMENTO: reg_num=${reg_num}`);
+    console.log(`📍 Navegou para anterior: reg_num=${reg_num} (registro ${reg_num + 1} de ${dadosDisponiveis.length})`);
+    
+    // ✅ ATUALIZAÇÃO: Popula formulário com novo registro
+    console.log(`📝 Populando com dados[${reg_num}]:`, dadosDisponiveis[reg_num]);
+    _popularFormularioAutomatico(dadosDisponiveis[reg_num]);
+    console.log('✅ Formulário atualizado com registro anterior');
+}
+
+/**
+ * ➡️ Navegar para o próximo registro
+ */
+function navegarParaProximo(instancia) {
+    contadorExecucoes++;
+    const timestampExecucao = Date.now();
+    console.log(`🚨🚨🚨 CHEGOU EM navegarParaProximo! EXECUÇÃO #${contadorExecucoes} (${timestampExecucao}) 🚨🚨🚨`);
+    console.log(`➡️ ESTADO INICIAL: reg_num=${reg_num} (registro ${reg_num + 1} de ${dadosDisponiveis.length})`);
+    console.log('📊 Instância disponível:', instancia);
+    
+    // ✅ PROTEÇÃO: Detecta execuções muito próximas (possível duplicação)
+    if (window.ultimaExecucaoProximo && (timestampExecucao - window.ultimaExecucaoProximo) < 100) {
+        console.log(`🚫 EXECUÇÃO DUPLICADA DETECTADA! Ignorando (diferença: ${timestampExecucao - window.ultimaExecucaoProximo}ms)`);
+        return;
+    }
+    window.ultimaExecucaoProximo = timestampExecucao;
+    
+    // ✅ VALIDAÇÃO: Verifica se há dados disponíveis
+    if (!dadosDisponiveis || dadosDisponiveis.length === 0) {
+        console.warn('⚠️ Nenhum dado disponível para navegação');
+        return;
+    }
+    
+    const ultimoIndice = dadosDisponiveis.length - 1; // ÚLTIMO ÍNDICE (BASE 0)
+    console.log(`🔍 VERIFICAÇÃO: reg_num=${reg_num}, ultimoIndice=${ultimoIndice}`);
+    
+    // ✅ CONTROLE DE LIMITE: Verifica se já está no último (BASE 0: reg_num >= length-1)
+    if (reg_num >= ultimoIndice) {
+        console.log(`🔊 Já está no último registro (reg_num=${reg_num}, último=${ultimoIndice}) - não pode avançar - emitindo beep`);
+        emitirBeepLimite('ultimo');
+        return;
+    }
+    
+    // ✅ NAVEGAÇÃO: Move um registro para frente (reg_num = reg_num + 1)
+    console.log(`🔄 ANTES DO INCREMENTO: reg_num=${reg_num}`);
+    reg_num++;
+    console.log(`🔄 APÓS INCREMENTO: reg_num=${reg_num}`);
+    console.log(`📍 Navegou para próximo: reg_num=${reg_num} (registro ${reg_num + 1} de ${dadosDisponiveis.length})`);
+    
+    // ✅ ATUALIZAÇÃO: Popula formulário com novo registro
+    console.log(`📝 Populando com dados[${reg_num}]:`, dadosDisponiveis[reg_num]);
+    _popularFormularioAutomatico(dadosDisponiveis[reg_num]);
+    console.log('✅ Formulário atualizado com próximo registro');
+}
+
+/**
+ * 🏁 Navegar para o último registro
+ */
+function navegarParaUltimo(instancia) {
+    const timestampExecucao = Date.now();
+    console.log(`🚨🚨🚨 CHEGOU EM navegarParaUltimo! (${timestampExecucao}) 🚨🚨🚨`);
+    console.log('🏁 Tentando navegar para último registro');
+    console.log('📊 Instância disponível:', instancia);
+    
+    // ✅ PROTEÇÃO: Detecta execuções muito próximas (possível duplicação)
+    if (window.ultimaExecucaoUltimo && (timestampExecucao - window.ultimaExecucaoUltimo) < 100) {
+        console.log(`🚫 EXECUÇÃO DUPLICADA DETECTADA! Ignorando (diferença: ${timestampExecucao - window.ultimaExecucaoUltimo}ms)`);
+        return;
+    }
+    window.ultimaExecucaoUltimo = timestampExecucao;
+    
+    // ✅ VALIDAÇÃO: Verifica se há dados disponíveis
+    if (!dadosDisponiveis || dadosDisponiveis.length === 0) {
+        console.warn('⚠️ Nenhum dado disponível para navegação');
+        return;
+    }
+    
+    const ultimoIndice = dadosDisponiveis.length - 1; // ÚLTIMO ÍNDICE (BASE 0)
+    
+    // ✅ CONTROLE DE LIMITE: Verifica se já está no último (BASE 0)
+    if (reg_num === ultimoIndice) {
+        console.log(`🔊 Já está no último registro (reg_num=${reg_num}) - emitindo beep`);
+        emitirBeepLimite('ultimo');
+        return;
+    }
+    
+    // ✅ NAVEGAÇÃO: Move para último registro (reg_num = length-1)
+    reg_num = ultimoIndice;
+    console.log(`📍 Navegou para último: reg_num=${reg_num} (registro ${reg_num + 1} de ${dadosDisponiveis.length})`);
+    
+    // ✅ ATUALIZAÇÃO: Popula formulário com novo registro
+    _popularFormularioAutomatico(dadosDisponiveis[reg_num]);
+    console.log('✅ Formulário atualizado com último registro');
+}
+
+// ============= INICIALIZAÇÃO =============
+
+// Configura listeners ao carregar o módulo
+configurarListenersNavegacao();
 
 // Log de inicialização
 console.log('📋 Módulo OperacoesCRUD.js (Framework DSB) carregado - Operações CRUD disponíveis');
